@@ -9,6 +9,19 @@
   const AGT_GAP = 12, WF_GAP = 6;
   const PAD = 80;
 
+  // === Command Alias (slash command → workflow ID) ===
+  const CMD_ALIAS = {
+    'bmm-automate': 'bmm-qa-automate',
+    'bmm-check-implementation-readiness': 'bmm-check-readiness',
+    'bmm-create-epics-and-stories': 'bmm-create-epics',
+    'bmm-create-ux-design': 'bmm-create-ux',
+    'bmm-generate-project-context': 'bmm-generate-context',
+    'bmm-research': 'bmm-market-research',
+    'core-editorial-review-prose': 'core-editorial-prose',
+    'core-editorial-review-structure': 'core-editorial-structure',
+    'core-review-adversarial-general': 'core-review-adversarial'
+  };
+
   // === State ===
   const expanded = {};            // moduleId -> bool
   let zoom = 1, panX = 0, panY = 0;
@@ -47,9 +60,10 @@
     activeTab = tabId;
     hideFileViewer();
 
-    // Update tab button states
+    // Update tab button states & clear inline borderBottomColor
     tabBar.querySelectorAll('.tab-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tabId);
+      btn.style.borderBottomColor = '';
     });
 
     // Update active tab indicator color
@@ -58,15 +72,25 @@
       btn.style.borderBottomColor = mod ? mod.color : '';
     });
 
-    if (tabId === 'overview') {
+    if (tabId === 'doc') {
+      canvasWrap.style.display = 'none';
+      moduleView.classList.add('hidden');
+      document.getElementById('btn-fit').style.display = 'none';
+      document.getElementById('btn-collapse').style.display = 'none';
+      document.getElementById('doc-view').classList.remove('hidden');
+      hideDetail();
+      showDocView();
+    } else if (tabId === 'overview') {
       canvasWrap.classList.remove('hidden');
       canvasWrap.style.display = '';
       moduleView.classList.add('hidden');
+      document.getElementById('doc-view').classList.add('hidden');
       document.getElementById('btn-fit').style.display = '';
       document.getElementById('btn-collapse').style.display = '';
     } else {
       canvasWrap.style.display = 'none';
       moduleView.classList.remove('hidden');
+      document.getElementById('doc-view').classList.add('hidden');
       document.getElementById('btn-fit').style.display = 'none';
       document.getElementById('btn-collapse').style.display = 'none';
       hideDetail();
@@ -78,6 +102,7 @@
     const btn = e.target.closest('.tab-btn');
     if (!btn) return;
     switchTab(btn.dataset.tab);
+    btn.blur();
   });
 
   // =========================================================
@@ -106,7 +131,7 @@
 
     // Config file
     if (mod.configFile) {
-      html += `<div class="module-config-file">Config: ${esc(mod.configFile)}</div>`;
+      html += `<div class="module-config-file clickable" data-mod-id="${mod.id}" data-config-file="${esc(mod.configFile)}">⚙ Config: ${esc(mod.configFile)}</div>`;
     }
 
     // Agents section
@@ -176,6 +201,19 @@
   }
 
   function handleModuleViewClick(e) {
+    // Config file click
+    const configEl = e.target.closest('.module-config-file.clickable');
+    if (configEl) {
+      const modId = configEl.dataset.modId;
+      const configPath = configEl.dataset.configFile;
+      showFileViewer(
+        { path: configPath, type: 'yaml', purpose: modId.toUpperCase() + ' 모듈 설정 파일' },
+        'config-' + modId,
+        false
+      );
+      return;
+    }
+
     // Workflow expand/collapse
     const header = e.target.closest('.wf-list-header');
     if (header) {
@@ -1611,6 +1649,22 @@
           color: mod.color,
           data: agent
         });
+        // Index agent file
+        if (agent.agentFile) {
+          items.push({
+            type: 'file',
+            subType: 'agent',
+            name: agent.agentFile.split('/').pop(),
+            fullName: agent.fullName,
+            id: agent.agentFile,
+            modId: mod.id,
+            modName: mod.shortName,
+            color: mod.color,
+            data: agent,
+            wfId: agent.id,
+            wfName: agent.name
+          });
+        }
       });
       mod.workflows.forEach(wf => {
         items.push({
@@ -1623,6 +1677,22 @@
           color: mod.color,
           data: wf
         });
+        // Index workflow definition file
+        if (wf.workflowFile) {
+          items.push({
+            type: 'file',
+            subType: 'workflow',
+            name: wf.workflowFile.split('/').pop(),
+            fullName: wf.description || '',
+            id: wf.workflowFile,
+            modId: mod.id,
+            modName: mod.shortName,
+            color: mod.color,
+            data: { path: wf.workflowFile, type: wf.workflowFile.split('.').pop() },
+            wfId: wf.id,
+            wfName: wf.name
+          });
+        }
 
         // Index files within workflows
         const indexFiles = (files, wfRef) => {
@@ -1646,6 +1716,24 @@
         indexFiles(wf.files, wf);
       });
     });
+    // Add doc items to search index
+    if (typeof DOC_DATA !== 'undefined') {
+      DOC_DATA.categories.forEach(cat => {
+        if (cat.id === 'glossary') return;
+        cat.items.forEach(item => {
+          items.push({
+            type: 'doc',
+            id: item.id,
+            name: item.title,
+            fullName: cat.title + ' > ' + item.title,
+            color: '#3b82f6',
+            modId: 'doc',
+            modName: 'Doc'
+          });
+        });
+      });
+    }
+
     return items;
   }
 
@@ -1693,7 +1781,7 @@
       searchResults.innerHTML = '<div class="search-empty">결과 없음</div>';
     } else {
       searchResults.innerHTML = currentMatches.map((item, i) => {
-        let typeLabel = item.type === 'agent' ? 'Agent' : item.type === 'workflow' ? 'Workflow' : 'File';
+        let typeLabel = item.type === 'agent' ? 'Agent' : item.type === 'workflow' ? 'Workflow' : item.type === 'doc' ? 'Doc' : 'File';
         let metaExtra = '';
         if (item.type === 'file') {
           metaExtra = ` · ${item.wfName}`;
@@ -1725,11 +1813,24 @@
   }
 
   function navigateToItem(item) {
+    if (item.type === 'doc') {
+      switchTab('doc');
+      requestAnimationFrame(() => { showDocItem(item.id); });
+      return;
+    }
+
     if (item.type === 'file') {
-      // Switch to the module tab, then expand the parent workflow
       switchTab(item.modId);
       requestAnimationFrame(() => {
-        // Find and expand the workflow containing this file
+        const mod = BMAD_DATA.modules.find(m => m.id === item.modId);
+
+        // Agent file → open agent viewer
+        if (item.subType === 'agent') {
+          if (mod) showAgentViewer(item.data, mod);
+          return;
+        }
+
+        // Workflow/internal file → expand workflow + open file viewer
         const wfItem = moduleView.querySelector(`.wf-list-item[data-wf-id="${CSS.escape(item.wfId)}"]`);
         if (wfItem) {
           const body = wfItem.querySelector('.wf-list-body');
@@ -1739,9 +1840,15 @@
             if (toggle) toggle.classList.add('open');
           }
           wfItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          // Brief highlight effect
           wfItem.style.boxShadow = `0 0 0 2px ${item.color}`;
           setTimeout(() => { wfItem.style.boxShadow = ''; }, 2000);
+        }
+
+        // Open file viewer
+        if (item.subType === 'workflow') {
+          showFileViewer(item.data, item.wfId, true);
+        } else {
+          showFileViewer(item.data, item.wfId, false);
         }
       });
       return;
@@ -1837,6 +1944,279 @@
       e.preventDefault();
       searchInput.focus();
     }
+  });
+
+  // =========================================================
+  //  DOC VIEW
+  // =========================================================
+  const docView = document.getElementById('doc-view');
+  const docNav = document.getElementById('doc-nav');
+  const docContentInner = document.getElementById('doc-content-inner');
+  const docSearchInput = document.getElementById('doc-search-input');
+
+  let docInitialized = false;
+  let currentDocId = null;
+
+  function showDocView() {
+    docView.classList.remove('hidden');
+    if (!docInitialized) {
+      renderDocNav();
+      // Show first item
+      const firstCat = DOC_DATA.categories[0];
+      if (firstCat && firstCat.items.length) {
+        showDocItem(firstCat.items[0].id);
+        // Open first category
+        const firstEl = docNav.querySelector('.doc-cat');
+        if (firstEl) firstEl.classList.add('open');
+      }
+      docInitialized = true;
+    }
+  }
+
+  function renderDocNav(filter) {
+    const q = (filter || '').toLowerCase().trim();
+    let html = '';
+
+    DOC_DATA.categories.forEach(cat => {
+      // For glossary, render differently
+      if (cat.id === 'glossary') {
+        if (q && !cat.items.some(t => t.term.toLowerCase().includes(q) || t.full.toLowerCase().includes(q) || t.def.toLowerCase().includes(q))) return;
+        const open = q ? 'open' : '';
+        html += `<div class="doc-cat ${open}" data-cat-id="${cat.id}">
+          <div class="doc-cat-header"><span class="doc-cat-arrow">&#9654;</span><span class="doc-cat-icon">${getIcon(cat.icon)}</span>${esc(cat.title)}</div>
+          <div class="doc-cat-items">
+            <div class="doc-nav-item" data-doc-id="glossary-page" data-cat-id="glossary">용어 전체 보기</div>
+          </div>
+        </div>`;
+        return;
+      }
+
+      let items = cat.items;
+      if (q) {
+        items = items.filter(item => {
+          const searchable = (item.title + ' ' + (item.tags || []).join(' ') + ' ' + (item.content || '')).toLowerCase();
+          return searchable.includes(q);
+        });
+        if (items.length === 0) return;
+      }
+
+      const open = q ? 'open' : '';
+      html += `<div class="doc-cat ${open}" data-cat-id="${cat.id}">
+        <div class="doc-cat-header"><span class="doc-cat-arrow">&#9654;</span><span class="doc-cat-icon">${getIcon(cat.icon)}</span>${esc(cat.title)} <span style="color:var(--text3);font-weight:400;font-size:11px;margin-left:auto">${items.length}</span></div>
+        <div class="doc-cat-items">`;
+      items.forEach(item => {
+        const active = item.id === currentDocId ? 'active' : '';
+        html += `<div class="doc-nav-item ${active}" data-doc-id="${item.id}">${q ? highlightMatch(item.title, filter) : esc(item.title)}</div>`;
+      });
+      html += `</div></div>`;
+    });
+
+    if (!html) {
+      html = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px">결과 없음</div>';
+    }
+
+    docNav.innerHTML = html;
+
+    // Bind events
+    docNav.querySelectorAll('.doc-cat-header').forEach(h => {
+      h.addEventListener('click', () => {
+        h.parentElement.classList.toggle('open');
+      });
+    });
+    docNav.querySelectorAll('.doc-nav-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const docId = el.dataset.docId;
+        if (docId === 'glossary-page') {
+          showGlossaryPage();
+        } else {
+          showDocItem(docId);
+        }
+      });
+    });
+  }
+
+  function showDocItem(docId) {
+    // Find item across all categories
+    let item = null;
+    for (const cat of DOC_DATA.categories) {
+      if (cat.id === 'glossary') continue;
+      item = cat.items.find(i => i.id === docId);
+      if (item) break;
+    }
+    if (!item) return;
+
+    currentDocId = docId;
+
+    // Clear search filter if active, so full nav is visible
+    if (docSearchInput.value) {
+      docSearchInput.value = '';
+      renderDocNav();
+    }
+
+    // Update nav active state
+    docNav.querySelectorAll('.doc-nav-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.docId === docId);
+    });
+
+    // Open parent category and scroll into view
+    const parentNavItem = docNav.querySelector(`.doc-nav-item[data-doc-id="${docId}"]`);
+    if (parentNavItem) {
+      const catEl = parentNavItem.closest('.doc-cat');
+      if (catEl) catEl.classList.add('open');
+      parentNavItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Render content
+    let html = item.content || '';
+
+    // Add related docs
+    if (item.related && item.related.length) {
+      html += '<div class="doc-related"><h4>관련 문서</h4><div class="doc-related-links">';
+      item.related.forEach(relId => {
+        const relItem = findDocItem(relId);
+        if (relItem) {
+          html += `<span class="doc-related-link" data-doc-id="${relId}">${esc(relItem.title)}</span>`;
+        }
+      });
+      html += '</div></div>';
+    }
+
+    docContentInner.innerHTML = html;
+    docContentInner.scrollTop = 0;
+    document.getElementById('doc-content').scrollTop = 0;
+
+    // Bind related links
+    docContentInner.querySelectorAll('.doc-related-link').forEach(el => {
+      el.addEventListener('click', () => {
+        showDocItem(el.dataset.docId);
+      });
+    });
+
+    // Bind file path links in <code> tags
+    docContentInner.querySelectorAll('code').forEach(codeEl => {
+      const text = codeEl.textContent.trim();
+      if (!/\.(md|yaml|yml|csv|json|xml)$/i.test(text)) return;
+      if (codeEl.closest('pre')) return;
+
+      const match = searchIndex.find(i => i.type === 'file' && i.id === text)
+        || searchIndex.find(i => i.type === 'file' && i.id.endsWith('/' + text.split('/').pop()));
+
+      if (match) {
+        codeEl.classList.add('doc-file-link');
+        codeEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          navigateToItem(match);
+        });
+      }
+    });
+
+    // Bind slash command links (/bmad-*) → navigate to module tab
+    docContentInner.querySelectorAll('code').forEach(codeEl => {
+      const text = codeEl.textContent.trim();
+      if (!text.startsWith('/bmad-')) return;
+      if (codeEl.closest('pre')) return;
+      if (codeEl.classList.contains('doc-file-link')) return;
+
+      const cmd = text.slice(1); // remove leading '/'
+      let match = null;
+
+      if (cmd.startsWith('bmad-agent-')) {
+        // Agent command → find agent file entry (goes to module tab + agent viewer)
+        const agentKey = cmd.replace('bmad-agent-', '');
+        match = searchIndex.find(i => i.type === 'file' && i.subType === 'agent' && i.wfId === agentKey);
+        if (!match) {
+          const namePart = agentKey.split('-').slice(1).join('-');
+          match = searchIndex.find(i =>
+            i.type === 'file' && i.subType === 'agent' &&
+            i.id.includes('/' + namePart)
+          );
+        }
+      } else {
+        // Workflow/task command → find workflow file entry (goes to module tab + file viewer)
+        let wfKey = cmd.replace('bmad-', '');
+        wfKey = CMD_ALIAS[wfKey] || wfKey;
+        match = searchIndex.find(i => i.type === 'file' && i.subType === 'workflow' && i.wfId === wfKey);
+        if (!match) {
+          let coreKey = 'core-' + cmd.replace('bmad-', '');
+          coreKey = CMD_ALIAS[coreKey] || coreKey;
+          match = searchIndex.find(i => i.type === 'file' && i.subType === 'workflow' && i.wfId === coreKey);
+        }
+      }
+
+      if (match) {
+        codeEl.classList.add('doc-cmd-link');
+        codeEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          navigateToItem(match);
+        });
+      }
+    });
+  }
+
+  function showGlossaryPage() {
+    currentDocId = 'glossary-page';
+    docNav.querySelectorAll('.doc-nav-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.docId === 'glossary-page');
+    });
+
+    const glossaryCat = DOC_DATA.categories.find(c => c.id === 'glossary');
+    if (!glossaryCat) return;
+
+    let html = '<h3>용어 모음집 (Glossary)</h3>';
+    html += '<p>용어를 클릭하면 관련 문서를 검색합니다.</p>';
+    html += '<div class="glossary-grid">';
+    glossaryCat.items.forEach(t => {
+      html += `<div class="glossary-item" data-term="${esc(t.term)}">
+        <span class="glossary-term">${esc(t.term)}</span>
+        <span class="glossary-full">${esc(t.full)}</span>
+        <span class="glossary-def">${esc(t.def)}</span>
+      </div>`;
+    });
+    html += '</div>';
+
+    docContentInner.innerHTML = html;
+    document.getElementById('doc-content').scrollTop = 0;
+
+    // Bind glossary items -> search
+    docContentInner.querySelectorAll('.glossary-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const term = el.dataset.term;
+        docSearchInput.value = term;
+        docSearchInput.dispatchEvent(new Event('input'));
+      });
+    });
+  }
+
+  function findDocItem(docId) {
+    for (const cat of DOC_DATA.categories) {
+      if (cat.id === 'glossary') {
+        const t = cat.items.find(i => i.id === docId);
+        if (t) return { title: t.term, id: t.id };
+        continue;
+      }
+      const item = cat.items.find(i => i.id === docId);
+      if (item) return item;
+    }
+    return null;
+  }
+
+  function getIcon(iconName) {
+    const icons = {
+      rocket: '&#9757;',
+      lightbulb: '&#9728;',
+      cube: '&#9724;',
+      user: '&#9786;',
+      flow: '&#8634;',
+      terminal: '&#9002;',
+      book: '&#9733;',
+      recipe: '&#9752;'
+    };
+    return icons[iconName] || '&#9632;';
+  }
+
+  // Doc search
+  docSearchInput.addEventListener('input', () => {
+    renderDocNav(docSearchInput.value);
   });
 
   // =========================================================

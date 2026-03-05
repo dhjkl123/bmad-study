@@ -34,6 +34,7 @@
     <button class="tab-btn" data-tab="bmm"><span class="tab-dot" style="background:#f59e0b"></span>BMM</button>
     <button class="tab-btn" data-tab="cis"><span class="tab-dot" style="background:#06b6d4"></span>CIS</button>
     <button class="tab-btn" data-tab="tea"><span class="tab-dot" style="background:#ef4444"></span>TEA</button>
+    <button class="tab-btn" data-tab="doc"><span class="tab-dot" style="background:#3b82f6"></span>DOC</button>
   </nav>
 
   <div class="canvas-wrap" id="canvas-wrap">
@@ -70,6 +71,18 @@
 
   <div class="module-view hidden" id="module-view"></div>
 
+  <div class="doc-view hidden" id="doc-view">
+    <aside class="doc-sidebar" id="doc-sidebar">
+      <div class="doc-search-wrap">
+        <input type="text" class="doc-search-input" id="doc-search-input" placeholder="문서 검색..." autocomplete="off" />
+      </div>
+      <nav class="doc-nav" id="doc-nav"></nav>
+    </aside>
+    <main class="doc-content" id="doc-content">
+      <div class="doc-content-inner" id="doc-content-inner"></div>
+    </main>
+  </div>
+
   <div class="file-viewer hidden" id="file-viewer">
     <div class="file-viewer-header">
       <button class="file-viewer-close" id="file-viewer-close">&times;</button>
@@ -86,6 +99,7 @@
   </div>
 
   <script src="flowchart-data.js"></script>
+  <script src="doc-data.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
