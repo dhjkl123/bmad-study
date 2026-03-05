@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BMAD Ecosystem</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-left">
+      <h1 class="logo"><span class="logo-accent">BMAD</span> Ecosystem</h1>
+    </div>
+    <div class="header-stats">
+      <div class="stat"><span class="stat-dot dot-core"></span>5 Modules</div>
+      <div class="stat"><span class="stat-dot dot-bmb"></span>20 Agents</div>
+      <div class="stat"><span class="stat-dot dot-bmm"></span>56 Workflows</div>
+    </div>
+    <div class="search-wrap" id="search-wrap">
+      <input type="text" class="search-input" id="search-input" placeholder="Agent / Workflow 검색..." autocomplete="off" />
+      <div class="search-results hidden" id="search-results"></div>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="btn-fit" title="Fit to view">Fit</button>
+      <button class="btn" id="btn-collapse" title="Collapse all">Collapse</button>
+    </div>
+  </header>
+
+  <nav class="tab-bar" id="tab-bar">
+    <button class="tab-btn active" data-tab="overview">Overview</button>
+    <button class="tab-btn" data-tab="core"><span class="tab-dot" style="background:#10b981"></span>CORE</button>
+    <button class="tab-btn" data-tab="bmb"><span class="tab-dot" style="background:#8b5cf6"></span>BMB</button>
+    <button class="tab-btn" data-tab="bmm"><span class="tab-dot" style="background:#f59e0b"></span>BMM</button>
+    <button class="tab-btn" data-tab="cis"><span class="tab-dot" style="background:#06b6d4"></span>CIS</button>
+    <button class="tab-btn" data-tab="tea"><span class="tab-dot" style="background:#ef4444"></span>TEA</button>
+  </nav>
+
+  <div class="canvas-wrap" id="canvas-wrap">
+    <svg id="svg" width="100%" height="100%">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#475569" />
+        </marker>
+      </defs>
+      <g id="root">
+        <g id="layer-edges"></g>
+        <g id="layer-nodes"></g>
+      </g>
+    </svg>
+
+    <!-- Zoom controls -->
+    <div class="zoom-controls">
+      <button class="zoom-btn" id="zoom-in">+</button>
+      <span class="zoom-level" id="zoom-level">100%</span>
+      <button class="zoom-btn" id="zoom-out">&minus;</button>
+      <button class="zoom-btn zoom-reset" id="zoom-reset">1:1</button>
+    </div>
+
+    <!-- Detail panel -->
+    <div class="detail-panel hidden" id="detail-panel">
+      <button class="detail-close" id="detail-close">&times;</button>
+      <div class="detail-dot" id="detail-dot"></div>
+      <h2 class="detail-title" id="detail-title"></h2>
+      <p class="detail-type" id="detail-type"></p>
+      <p class="detail-desc" id="detail-desc"></p>
+      <div class="detail-extras" id="detail-extras"></div>
+    </div>
+  </div>
+
+  <div class="module-view hidden" id="module-view"></div>
+
+  <div class="file-viewer hidden" id="file-viewer">
+    <div class="file-viewer-header">
+      <button class="file-viewer-close" id="file-viewer-close">&times;</button>
+      <div class="file-viewer-icon" id="fv-icon"></div>
+      <div class="file-viewer-meta">
+        <h3 class="file-viewer-title" id="fv-title"></h3>
+        <span class="file-viewer-path" id="fv-path"></span>
+      </div>
+      <span class="file-viewer-type-badge" id="fv-type-badge"></span>
+    </div>
+    <div class="file-viewer-summary" id="fv-summary"></div>
+    <div class="fv-step-nav" id="fv-step-nav" style="display:none"></div>
+    <div class="file-viewer-content" id="fv-content"></div>
+  </div>
+
+  <script src="flowchart-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
