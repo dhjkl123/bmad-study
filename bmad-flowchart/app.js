@@ -27,7 +27,7 @@
   let zoom = 1, panX = 0, panY = 0;
   let dragging = false, dragStartX = 0, dragStartY = 0, panStartX = 0, panStartY = 0;
   let layoutCache = null;
-  let activeTab = 'overview';     // 'overview' | module id
+  let activeTab = 'doc';          // 'doc' | 'overview' | module id
 
   // === DOM ===
   const svg = document.getElementById('svg');
@@ -2223,6 +2223,7 @@
   //  INIT
   // =========================================================
   render();
+  switchTab('doc');
   setTimeout(fitToView, 100);
 
 })();
