@@ -2226,4 +2226,123 @@
   switchTab('doc');
   setTimeout(fitToView, 100);
 
+  // =========================================================
+  //  === Mobile Responsive ===
+  // =========================================================
+
+  // 1) Debounced window resize handler
+  let mobileResizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(mobileResizeTimer);
+    mobileResizeTimer = setTimeout(() => {
+      if (activeTab === 'overview' && layoutCache) {
+        fitToView();
+      }
+    }, 250);
+  });
+
+  // 2) Tab Bar auto-scroll (480px and below)
+  tabBar.addEventListener('click', (e) => {
+    const btn = e.target.closest('.tab-btn');
+    if (btn && window.innerWidth <= 480) {
+      setTimeout(() => {
+        tabBar.scrollLeft = btn.offsetLeft - (tabBar.clientWidth / 2) + (btn.clientWidth / 2);
+      }, 100);
+    }
+  });
+
+  // 3) Detail Panel swipe-down gesture (480px and below)
+  let detailSwipe = { start: 0, distance: 0 };
+
+  detailPanel.addEventListener('touchstart', (e) => {
+    if (window.innerWidth <= 480) {
+      detailSwipe.start = e.touches[0].clientY;
+    }
+  }, { passive: true });
+
+  detailPanel.addEventListener('touchmove', (e) => {
+    if (window.innerWidth <= 480 && detailSwipe.start) {
+      detailSwipe.distance = e.touches[0].clientY - detailSwipe.start;
+      if (detailSwipe.distance > 50) {
+        detailPanel.style.opacity = Math.max(0.5, 1 - detailSwipe.distance / 200);
+      }
+    }
+  }, { passive: true });
+
+  detailPanel.addEventListener('touchend', () => {
+    if (detailSwipe.distance > 100) {
+      hideDetail();
+    }
+    detailPanel.style.opacity = '';
+    detailSwipe = { start: 0, distance: 0 };
+  });
+
+  // 4) Body overflow control (480px) - unified for detail panel + file viewer
+  function updateBodyOverflow() {
+    if (window.innerWidth > 480) {
+      document.body.style.overflow = '';
+      return;
+    }
+    const detailOpen = !detailPanel.classList.contains('hidden');
+    const fvOpen = !fileViewer.classList.contains('hidden');
+    document.body.style.overflow = (detailOpen || fvOpen) ? 'hidden' : '';
+  }
+
+  const detailObserver = new MutationObserver(updateBodyOverflow);
+  detailObserver.observe(detailPanel, { attributes: true, attributeFilter: ['class'] });
+
+  // 5) File Viewer scroll reset & body overflow control (480px and below)
+  const fvObserver = new MutationObserver(() => {
+    if (window.innerWidth <= 480 && !fileViewer.classList.contains('hidden')) {
+      const content = document.querySelector('.file-viewer-content');
+      if (content) content.scrollTop = 0;
+    }
+    updateBodyOverflow();
+  });
+  fvObserver.observe(fileViewer, { attributes: true, attributeFilter: ['class'] });
+
+  // 6) Doc Sidebar slide-in toggle (480px and below)
+  (function initDocSidebarToggle() {
+    const docSidebar = document.querySelector('.doc-sidebar');
+    const docView = document.querySelector('.doc-view');
+    if (!docSidebar || !docView) return;
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'doc-sidebar-toggle';
+    toggleBtn.textContent = '\u2261 \uBB38\uC11C \uBAA9\uB85D';
+    toggleBtn.setAttribute('aria-label', '\uBB38\uC11C \uC0AC\uC774\uB4DC\uBC14 \uD1A0\uAE00');
+    docView.insertBefore(toggleBtn, docView.firstChild);
+
+    // Backdrop element
+    const backdrop = document.createElement('div');
+    backdrop.className = 'doc-sidebar-backdrop';
+    docView.appendChild(backdrop);
+
+    function closeSidebar() {
+      docSidebar.classList.remove('mobile-open');
+      backdrop.classList.remove('visible');
+    }
+    function openSidebar() {
+      docSidebar.classList.add('mobile-open');
+      backdrop.classList.add('visible');
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      if (docSidebar.classList.contains('mobile-open')) {
+        closeSidebar();
+      } else {
+        openSidebar();
+      }
+    });
+
+    backdrop.addEventListener('click', closeSidebar);
+
+    // Close sidebar when a doc nav item is clicked on mobile
+    docSidebar.addEventListener('click', (e) => {
+      if (window.innerWidth <= 480 && e.target.closest('.doc-nav-item')) {
+        closeSidebar();
+      }
+    });
+  })();
+
 })();
