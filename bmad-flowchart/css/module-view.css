@@ -1,0 +1,204 @@
+/* === Module View === */
+.module-view {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - var(--header-h) - var(--tab-h));
+  overflow-y: auto;
+  padding: 24px 32px 60px;
+  background: var(--bg);
+}
+.module-view.hidden { display: none; }
+
+.module-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.module-header-accent {
+  width: 5px;
+  height: 48px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.module-header-info h2 { font-size: 20px; font-weight: 600; }
+.module-header-info p { font-size: 13px; color: var(--text2); margin-top: 4px; }
+.module-header-badge {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+.module-header-badge .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--text2);
+  background: var(--elevated);
+  border: 1px solid var(--border);
+}
+.module-config-file {
+  font-size: 11px;
+  color: var(--text3);
+  margin-bottom: 24px;
+  font-family: 'SF Mono', 'Consolas', monospace;
+}
+.module-config-file.clickable {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.module-config-file.clickable:hover {
+  color: var(--text);
+}
+
+/* Agent Cards */
+.agents-section h3 { font-size: 14px; font-weight: 600; color: var(--text2); margin-bottom: 12px; }
+.agent-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin-bottom: 32px; }
+.agent-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  transition: border-color 0.15s;
+}
+.agent-card:hover { border-color: rgba(255,255,255,0.15); }
+.agent-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.agent-card-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.agent-card-name { font-size: 14px; font-weight: 600; }
+.agent-card-fullname { font-size: 11px; color: var(--text3); margin-left: auto; }
+.agent-card-role { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+.agent-card-desc { font-size: 11px; color: var(--text3); line-height: 1.5; }
+.agent-card-file {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--text3);
+  font-family: 'SF Mono', 'Consolas', monospace;
+}
+
+/* Workflow List */
+.workflows-section h3 { font-size: 14px; font-weight: 600; color: var(--text2); margin-bottom: 12px; }
+.wf-list { display: flex; flex-direction: column; gap: 4px; }
+.wf-list-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+.wf-list-item:hover { border-color: rgba(255,255,255,0.12); }
+.wf-list-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.wf-list-accent { width: 3px; height: 20px; border-radius: 2px; flex-shrink: 0; }
+.wf-list-name { font-size: 13px; font-weight: 500; flex: 1; }
+.wf-list-desc { font-size: 11px; color: var(--text3); flex: 2; }
+.wf-list-file-count {
+  font-size: 10px;
+  color: var(--text3);
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--elevated);
+}
+.wf-list-toggle {
+  font-size: 10px;
+  color: var(--text3);
+  transition: transform 0.2s;
+  width: 16px;
+  text-align: center;
+}
+.wf-list-toggle.open { transform: rotate(180deg); }
+.wf-list-body {
+  padding: 0 14px 12px 30px;
+  display: none;
+}
+.wf-list-body.open { display: block; }
+.wf-list-wffile {
+  font-size: 10px;
+  color: var(--text3);
+  font-family: 'SF Mono', 'Consolas', monospace;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.wf-list-wffile.clickable {
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+.wf-list-wffile.clickable:hover {
+  background: var(--surface2);
+  color: var(--text1);
+}
+.wf-list-wffile.active {
+  background: var(--primary);
+  color: #fff;
+}
+.wf-cross-badge {
+  font-size: 10px;
+  color: var(--core);
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+/* File Tree */
+.file-tree { list-style: none; padding: 0; margin: 0; }
+.file-tree .file-tree { padding-left: 18px; }
+.file-node {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 3px 0;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.file-node-toggle {
+  cursor: pointer;
+  user-select: none;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  color: var(--text3);
+  flex-shrink: 0;
+  margin-top: 1px;
+  border-radius: 3px;
+  transition: background 0.1s;
+}
+.file-node-toggle:hover { background: var(--elevated); }
+.file-icon { flex-shrink: 0; font-size: 11px; width: 16px; text-align: center; }
+.file-path {
+  font-family: 'SF Mono', 'Consolas', monospace;
+  font-size: 11px;
+  word-break: break-all;
+}
+.file-purpose {
+  color: var(--text3);
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+/* File type colors */
+.file-md .file-icon, .file-md .file-path { color: #10b981; }
+.file-yaml .file-icon, .file-yaml .file-path { color: #f59e0b; }
+.file-xml .file-icon, .file-xml .file-path { color: #06b6d4; }
+.file-csv .file-icon, .file-csv .file-path { color: #8b5cf6; }
+.file-groovy .file-icon, .file-groovy .file-path { color: #ef4444; }
+.file-other .file-icon, .file-other .file-path { color: var(--text2); }
+
+/* Search file result type */
+.search-type-file { font-style: italic; }
+
