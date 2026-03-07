@@ -8,8 +8,9 @@
 
 /* --- 900px: Tablet Landscape --- */
 @media (max-width: 900px) {
+  .file-viewer-resize { display: none; }
   .file-viewer {
-    width: 100%;
+    width: 100% !important;
     position: fixed;
     z-index: 200;
   }
@@ -210,7 +211,7 @@
     height: 3px;
   }
   .module-header-info h2 { font-size: 18px; }
-  .module-header-info p { font-size: 12px; }
+  .module-header-info p { font-size: 14px; }
   .module-header-badge {
     margin-left: 0;
     flex-wrap: wrap;
@@ -225,18 +226,18 @@
     gap: 10px;
   }
   .agent-card { padding: 12px; }
-  .agent-card-name { font-size: 13px; }
-  .agent-card-fullname { font-size: 10px; }
-  .agent-card-role { font-size: 11px; }
-  .agent-card-desc { font-size: 10px; }
+  .agent-card-name { font-size: 15px; }
+  .agent-card-fullname { font-size: 12px; }
+  .agent-card-role { font-size: 12px; }
+  .agent-card-desc { font-size: 13px; }
   .wf-list { gap: 3px; }
   .wf-list-header {
     padding: 8px 10px;
     font-size: 12px;
   }
-  .wf-list-name { font-size: 12px; }
+  .wf-list-name { font-size: 14px; }
   .wf-list-desc {
-    font-size: 10px;
+    font-size: 13px;
     flex: 1;
   }
   .wf-list-toggle { font-size: 9px; }
@@ -338,22 +339,22 @@
     justify-content: center;
   }
   .file-viewer-icon { font-size: 16px; }
-  .file-viewer-title { font-size: 12px; }
-  .file-viewer-path { font-size: 9px; }
+  .file-viewer-title { font-size: 13px; }
+  .file-viewer-path { font-size: 10px; }
   .file-viewer-summary {
     padding: 8px 14px;
-    font-size: 11px;
+    font-size: 12px;
   }
   .file-viewer-content {
     padding: 12px;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.5;
   }
-  .fv-content-md h1 { font-size: 16px; }
-  .fv-content-md h2 { font-size: 13px; }
-  .fv-content-md h3 { font-size: 12px; }
-  .fv-content-md p { font-size: 11px; }
-  .fv-table { font-size: 10px; }
+  .fv-content-md h1 { font-size: 18px; }
+  .fv-content-md h2 { font-size: 15px; }
+  .fv-content-md h3 { font-size: 14px; }
+  .fv-content-md h4 { font-size: 13px; }
+  .fv-table { font-size: 11px; }
   .fv-table th, .fv-table td { padding: 4px 6px; }
 
   /* --- Step Nav (480px) --- */
@@ -397,7 +398,7 @@
     font-size: 10px;
   }
   .fv-nav-branch-name { font-size: 10px; }
-  .fv-nav-branch-purpose { font-size: 9px; }
+  .fv-nav-branch-purpose { font-size: 10px; }
   .fv-nav-pills {
     padding: 3px 12px 6px;
     gap: 3px;

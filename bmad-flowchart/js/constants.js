@@ -35,7 +35,8 @@ window.BMAD = {
     docInitialized: false,
     currentDocId: null,
     touchStartDist: 0, touchStartZoom: 1,
-    detailSwipe: { start: 0, distance: 0 }
+    detailSwipe: { start: 0, distance: 0 },
+    fvWidth: 420
   },
 
   // DOM 참조 (init에서 채움)

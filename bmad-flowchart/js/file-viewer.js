@@ -194,6 +194,7 @@
     if (activeWfFile) activeWfFile.classList.add('active');
 
     B.dom.fileViewer.classList.remove('hidden');
+    document.documentElement.style.setProperty('--fv-width', S.fvWidth + 'px');
     B.dom.moduleView.classList.add('viewer-open');
 
     // Navigation features
@@ -261,10 +262,81 @@
     });
   };
 
+  // === Resize Logic ===
+  B.fileViewer.initResize = function() {
+    var handle = document.getElementById('file-viewer-resize');
+    var resizing = false;
+
+    function clampWidth(w) {
+      var min = 300;
+      var max = Math.floor(window.innerWidth * 0.7);
+      if (w < min) return min;
+      if (w > max) return max;
+      return w;
+    }
+
+    function applyWidth(w) {
+      S.fvWidth = w;
+      document.documentElement.style.setProperty('--fv-width', w + 'px');
+    }
+
+    function startResize(e) {
+      e.preventDefault();
+      resizing = true;
+      B.dom.fileViewer.style.transition = 'none';
+      document.body.style.userSelect = 'none';
+      document.body.style.webkitUserSelect = 'none';
+      document.body.style.cursor = 'col-resize';
+    }
+
+    function doResize(clientX) {
+      if (!resizing) return;
+      var newWidth = clampWidth(window.innerWidth - clientX);
+      applyWidth(newWidth);
+    }
+
+    function stopResize() {
+      if (!resizing) return;
+      resizing = false;
+      B.dom.fileViewer.style.transition = '';
+      document.body.style.userSelect = '';
+      document.body.style.webkitUserSelect = '';
+      document.body.style.cursor = '';
+    }
+
+    // Mouse events
+    handle.addEventListener('mousedown', startResize);
+    document.addEventListener('mousemove', function(e) {
+      doResize(e.clientX);
+    });
+    document.addEventListener('mouseup', stopResize);
+
+    // Touch events
+    handle.addEventListener('touchstart', function(e) {
+      startResize(e);
+    });
+    document.addEventListener('touchmove', function(e) {
+      if (!resizing) return;
+      e.preventDefault();
+      doResize(e.touches[0].clientX);
+    }, { passive: false });
+    document.addEventListener('touchend', stopResize);
+
+    // Window resize: clamp current width
+    window.addEventListener('resize', function() {
+      if (B.dom.fileViewer.classList.contains('hidden')) return;
+      var clamped = clampWidth(S.fvWidth);
+      if (clamped !== S.fvWidth) applyWidth(clamped);
+    });
+  };
+
   // === Event Bindings ===
   B.fileViewer.bindEvents = function() {
     // Close button
     document.getElementById('file-viewer-close').addEventListener('click', B.fileViewer.hide);
+
+    // Resize handle
+    B.fileViewer.initResize();
 
     // Navigation click delegation within file viewer
     B.dom.fileViewer.addEventListener('click', function(e) {
